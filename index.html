@@ -55,12 +55,8 @@
         .card.profit .amount { color: #38a169; }
         .card.expense { border-left-color: #e53e3e; }
         .card.expense .amount { color: #e53e3e; }
-        .card.roi { border-left-color: #8e44ad; }
-        .card.roi .amount { color: #8e44ad; }
-        .card.is-loss { border-left-color: #e53e3e !important; }
-        .card.is-loss .amount { color: #e53e3e !important; }
 
-        /* Action Bar (Logout & Print) */
+        /* Action Bar */
         .top-action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap; }
         .btn-action { padding: 10px 18px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; }
         .btn-print { background: #4a5568; color: white; }
@@ -79,11 +75,15 @@
         
         /* Form Grids */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-        .form-group { display: flex; flex-direction: column; }
+        .form-group { display: flex; flex-direction: column; position: relative; }
         .form-group label { margin-bottom: 5px; font-weight: 600; font-size: 12px; color: #4a5568; }
         .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; outline: none; }
         .form-group input:focus, .form-group select:focus { border-color: #3182ce; }
         
+        /* Dynamic Preview Badges */
+        .preview-badge { display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 12px; color: #4a5568; font-weight: bold; }
+        .preview-badge img { width: 28px; height: 28px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #fff; }
+
         .btn-submit { grid-column: 1 / -1; background: #38a169; color: #fff; border: none; padding: 12px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; transition: 0.3s; }
         .btn-submit:hover { background: #2f855a; }
         .btn-submit.expense-btn { background: #e53e3e; }
@@ -98,13 +98,16 @@
         /* Responsive Tables & Search */
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; min-width: 700px; }
-        th, td { padding: 10px 12px; border-bottom: 1px solid #edf2f7; font-size: 13px; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #edf2f7; font-size: 13px; vertical-align: middle; }
         th { background-color: #1a365d; color: white; font-weight: 600; }
         tr:hover { background-color: #f7fafc; }
         .delete-btn { color: #e53e3e; cursor: pointer; border: none; background: none; font-weight: bold; font-size: 16px; }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        .cell-flex { display: flex; align-items: center; gap: 8px; }
+        .table-img { width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
 
         /* Print Specific Professional Styles */
         .print-footer { display: none; margin-top: 40px; padding-top: 20px; border-top: 2px solid #cbd5e0; justify-content: space-between; }
@@ -125,7 +128,6 @@
             .tab-content { display: block !important; }
         }
 
-        /* Mobile Optimization Rules */
         @media (max-width: 600px) {
             .header-card { flex-direction: column; text-align: center; }
             .logo-box { width: 80px; height: 80px; }
@@ -157,7 +159,7 @@
         <button class="btn-action btn-logout" onclick="logout()">🔒 Logout</button>
     </div>
 
-    <!-- Header with Shop Details & Custom Logos -->
+    <!-- Header Card -->
     <div class="header-card">
         <div class="logo-box">
             <svg viewBox="0 0 200 120" width="100%" height="100%">
@@ -203,13 +205,9 @@
             <h3>Today Expenses</h3>
             <div class="amount" id="todayExpense">Rs. 0</div>
         </div>
-        <div class="card profit" id="todayNetCard">
+        <div class="card profit">
             <h3>Today Net Profit</h3>
             <div class="amount" id="todayNetProfit">Rs. 0</div>
-        </div>
-        <div class="card roi" id="todayRoiCard">
-            <h3>Today ROI %</h3>
-            <div class="amount" id="todayRoi">0%</div>
         </div>
         <div class="card">
             <h3>Monthly Sales</h3>
@@ -219,13 +217,9 @@
             <h3>Monthly Expenses</h3>
             <div class="amount" id="monthlyExpense">Rs. 0</div>
         </div>
-        <div class="card profit" id="monthlyNetCard">
+        <div class="card profit">
             <h3>Monthly Net Profit</h3>
             <div class="amount" id="monthlyNetProfit">Rs. 0</div>
-        </div>
-        <div class="card roi" id="monthlyRoiCard">
-            <h3>Monthly ROI %</h3>
-            <div class="amount" id="monthlyRoi">0%</div>
         </div>
     </div>
 
@@ -252,10 +246,44 @@
                     <label>Phone Number</label>
                     <input type="text" id="custPhone" placeholder="0300-1234567">
                 </div>
+                
+                <!-- Company Select with Auto Suggestions & Logo -->
+                <div class="form-group">
+                    <label>Company Brand</label>
+                    <input type="text" id="phoneCompany" list="companyList" placeholder="e.g. Samsung, Vivo, iPhone" oninput="updateCompanyPreview(this.value)">
+                    <datalist id="companyList">
+                        <option value="Samsung"></option>
+                        <option value="iPhone"></option>
+                        <option value="Vivo"></option>
+                        <option value="Oppo"></option>
+                        <option value="Realme"></option>
+                        <option value="Xiaomi / Redmi"></option>
+                        <option value="Infinix"></option>
+                        <option value="Tecno"></option>
+                        <option value="Nokia"></option>
+                        <option value="Huawei"></option>
+                    </datalist>
+                    <div id="companyPreview" class="preview-badge"></div>
+                </div>
+
+                <!-- Model Select with Auto Suggestions & Image -->
                 <div class="form-group">
                     <label>Mobile Model</label>
-                    <input type="text" id="phoneModel" required placeholder="e.g. Vivo Y20 / iPhone 11">
+                    <input type="text" id="phoneModel" list="modelList" required placeholder="e.g. Galaxy S21 / iPhone 11" oninput="updateModelPreview(this.value)">
+                    <datalist id="modelList">
+                        <option value="Galaxy S21"></option>
+                        <option value="Galaxy A12"></option>
+                        <option value="iPhone 11"></option>
+                        <option value="iPhone 12"></option>
+                        <option value="Vivo Y20"></option>
+                        <option value="Vivo Y12"></option>
+                        <option value="Oppo F19"></option>
+                        <option value="Redmi Note 10"></option>
+                        <option value="Infinix Hot 10"></option>
+                    </datalist>
+                    <div id="modelPreview" class="preview-badge"></div>
                 </div>
+
                 <div class="form-group">
                     <label>Fault / Repair Work</label>
                     <input type="text" id="repairIssue" required placeholder="e.g. Panel Replacement, Charging Jack">
@@ -275,7 +303,6 @@
         <div class="section-block">
             <h2 class="section-title">Repair History Ledger & Reports</h2>
             
-            <!-- Filters Control Bar -->
             <div class="filter-controls">
                 <div class="filter-group" style="flex:2;">
                     <label>Search Keyword</label>
@@ -310,6 +337,7 @@
                             <th>Date & Time</th>
                             <th>Customer</th>
                             <th>Phone</th>
+                            <th>Company</th>
                             <th>Model</th>
                             <th>Fault Details</th>
                             <th>Part Cost</th>
@@ -335,7 +363,16 @@
                 </div>
                 <div class="form-group">
                     <label>Expense Title</label>
-                    <input type="text" id="expTitle" required placeholder="e.g. Tea, Rent, Electric Bill">
+                    <input type="text" id="expTitle" list="expenseSuggestions" required placeholder="e.g. Tea, Rent, Electric Bill" oninput="updateExpensePreview(this.value)">
+                    <datalist id="expenseSuggestions">
+                        <option value="Tea / Refreshment"></option>
+                        <option value="Shop Rent"></option>
+                        <option value="Electricity Bill"></option>
+                        <option value="Internet Bill"></option>
+                        <option value="Transport / Petrol"></option>
+                        <option value="Stationery / Paper"></option>
+                    </datalist>
+                    <div id="expensePreview" class="preview-badge"></div>
                 </div>
                 <div class="form-group">
                     <label>Amount Spent (Rs.)</label>
@@ -352,7 +389,6 @@
         <div class="section-block">
             <h2 class="section-title">Expense History Ledger & Reports</h2>
             
-            <!-- Filters Control Bar -->
             <div class="filter-controls">
                 <div class="filter-group" style="flex:2;">
                     <label>Search Expense</label>
@@ -397,7 +433,6 @@
         </div>
     </div>
 
-    <!-- Professional Print Footer Signature -->
     <div class="print-footer">
         <div class="signature-box">System Generated Audit</div>
         <div class="signature-box">Owner Signature (Umar Baloch)</div>
@@ -406,6 +441,56 @@
 </div>
 
 <script>
+    // Asset Mapping Helper Functions
+    function getCompanyLogoUrl(companyName) {
+        if (!companyName) return '';
+        const name = companyName.toLowerCase();
+        if (name.includes('samsung')) return 'https://img.icons8.com/color/48/samsung.png';
+        if (name.includes('iphone') || name.includes('apple')) return 'https://img.icons8.com/color/48/mac-os.png';
+        if (name.includes('vivo')) return 'https://img.icons8.com/color/48/vivo.png';
+        if (name.includes('oppo')) return 'https://img.icons8.com/color/48/oppo.png';
+        if (name.includes('realme')) return 'https://img.icons8.com/color/48/realme.png';
+        if (name.includes('xiaomi') || name.includes('redmi')) return 'https://img.icons8.com/color/48/xiaomi.png';
+        if (name.includes('huawei')) return 'https://img.icons8.com/color/48/huawei.png';
+        if (name.includes('nokia')) return 'https://img.icons8.com/color/48/nokia.png';
+        return 'https://img.icons8.com/color/48/smartphone.png';
+    }
+
+    function getModelImageUrl(modelName) {
+        if (!modelName) return '';
+        return 'https://img.icons8.com/color/48/cell-phone.png';
+    }
+
+    function getExpenseIconUrl(title) {
+        if (!title) return '';
+        const name = title.toLowerCase();
+        if (name.includes('tea') || name.includes('chai') || name.includes('refreshment')) return 'https://img.icons8.com/color/48/tea.png';
+        if (name.includes('rent')) return 'https://img.icons8.com/color/48/home.png';
+        if (name.includes('bill') || name.includes('electric') || name.includes('power')) return 'https://img.icons8.com/color/48/lightning-bolt.png';
+        if (name.includes('net') || name.includes('internet') || name.includes('wifi')) return 'https://img.icons8.com/color/48/wi-fi.png';
+        if (name.includes('petrol') || name.includes('transport') || name.includes('fuel')) return 'https://img.icons8.com/color/48/gas-station.png';
+        return 'https://img.icons8.com/color/48/cash-in-hand.png';
+    }
+
+    // Dynamic Form Field Previews
+    function updateCompanyPreview(val) {
+        const box = document.getElementById('companyPreview');
+        const url = getCompanyLogoUrl(val);
+        box.innerHTML = val.trim() ? `<img src="${url}" alt="Logo"> <span>${val}</span>` : '';
+    }
+
+    function updateModelPreview(val) {
+        const box = document.getElementById('modelPreview');
+        const url = getModelImageUrl(val);
+        box.innerHTML = val.trim() ? `<img src="${url}" alt="Model Image"> <span>${val}</span>` : '';
+    }
+
+    function updateExpensePreview(val) {
+        const box = document.getElementById('expensePreview');
+        const url = getExpenseIconUrl(val);
+        box.innerHTML = val.trim() ? `<img src="${url}" alt="Expense Icon"> <span>${val}</span>` : '';
+    }
+
     function playEntrySound() {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -413,8 +498,8 @@
             const gain = audioCtx.createGain();
 
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
-            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.12); 
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.12);
 
             gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
@@ -473,6 +558,7 @@
         const cost = parseFloat(document.getElementById('costPrice').value) || 0;
         const charged = parseFloat(document.getElementById('chargedPrice').value) || 0;
         const customDateVal = document.getElementById('repairCustomDate').value;
+        const companyVal = document.getElementById('phoneCompany').value || 'Generic';
 
         let recordDate = customDateVal ? new Date(customDateVal) : new Date();
         
@@ -483,7 +569,10 @@
             date: recordDate.toISOString(),
             name: document.getElementById('custName').value,
             phone: document.getElementById('custPhone').value || 'N/A',
+            company: companyVal,
+            companyLogo: getCompanyLogoUrl(companyVal),
             model: document.getElementById('phoneModel').value,
+            modelImg: getModelImageUrl(document.getElementById('phoneModel').value),
             issue: document.getElementById('repairIssue').value,
             cost: cost,
             charged: charged,
@@ -494,6 +583,8 @@
         localStorage.setItem('baloch_repairs', JSON.stringify(repairs));
         playEntrySound();
         this.reset();
+        document.getElementById('companyPreview').innerHTML = '';
+        document.getElementById('modelPreview').innerHTML = '';
         filterRepairs();
         calculateDashboard();
     });
@@ -501,6 +592,7 @@
     document.getElementById('expenseForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const customDateVal = document.getElementById('expCustomDate').value;
+        const titleVal = document.getElementById('expTitle').value;
         let recordDate = customDateVal ? new Date(customDateVal) : new Date();
 
         const newExpense = {
@@ -508,7 +600,8 @@
             dateStr: recordDate.toLocaleDateString('en-US') + ' ' + new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'}),
             dateISO: recordDate.toISOString().split('T')[0],
             date: recordDate.toISOString(),
-            title: document.getElementById('expTitle').value,
+            title: titleVal,
+            icon: getExpenseIconUrl(titleVal),
             amount: parseFloat(document.getElementById('expAmount').value) || 0,
             details: document.getElementById('expDetails').value || '-'
         };
@@ -517,6 +610,7 @@
         localStorage.setItem('baloch_expenses', JSON.stringify(expenses));
         playEntrySound();
         this.reset();
+        document.getElementById('expensePreview').innerHTML = '';
         filterExpenses();
         calculateDashboard();
     });
@@ -530,6 +624,7 @@
         let filtered = repairs.filter(r => {
             const matchesSearch = r.name.toLowerCase().includes(query) || 
                                   r.phone.toLowerCase().includes(query) || 
+                                  (r.company && r.company.toLowerCase().includes(query)) ||
                                   r.model.toLowerCase().includes(query);
             
             const itemDate = r.dateISO || r.date.split('T')[0];
@@ -551,17 +646,21 @@
         const tbody = document.getElementById('repairTableBody');
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#a0aec0;">No repair records found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:#a0aec0;">No repair records found.</td></tr>`;
             return;
         }
         data.forEach((item, index) => {
+            const compLogo = item.companyLogo || getCompanyLogoUrl(item.company || '');
+            const modelImg = item.modelImg || getModelImageUrl(item.model || '');
+            
             tbody.innerHTML += `<tr>
                 <td><input type="checkbox" class="repair-chk"></td>
                 <td><strong>${index + 1}</strong></td>
                 <td>${item.dateStr}</td>
                 <td><strong>${item.name}</strong></td>
                 <td>${item.phone}</td>
-                <td>${item.model}</td>
+                <td><div class="cell-flex"><img class="table-img" src="${compLogo}" alt="logo"> ${item.company || '-'}</div></td>
+                <td><div class="cell-flex"><img class="table-img" src="${modelImg}" alt="img"> ${item.model}</div></td>
                 <td>${item.issue}</td>
                 <td>Rs. ${item.cost.toLocaleString()}</td>
                 <td>Rs. ${item.charged.toLocaleString()}</td>
@@ -604,11 +703,12 @@
             return;
         }
         data.forEach((item, index) => {
+            const expIcon = item.icon || getExpenseIconUrl(item.title);
             tbody.innerHTML += `<tr>
                 <td><input type="checkbox" class="exp-chk"></td>
                 <td><strong>${index + 1}</strong></td>
                 <td>${item.dateStr}</td>
-                <td><strong>${item.title}</strong></td>
+                <td><div class="cell-flex"><img class="table-img" src="${expIcon}" alt="icon"> <strong>${item.title}</strong></div></td>
                 <td>${item.details}</td>
                 <td style="color: #e53e3e; font-weight: bold;">Rs. ${item.amount.toLocaleString()}</td>
                 <td><button class="delete-btn" onclick="deleteExpense(${item.id})">&times;</button></td>
@@ -663,20 +763,18 @@
         const todayStr = now.toDateString();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        let todaySales = 0, todayGrossProfit = 0, todayExp = 0, todayCost = 0;
-        let monthSales = 0, monthGrossProfit = 0, monthExp = 0, monthCost = 0;
+        let todaySales = 0, todayGrossProfit = 0, todayExp = 0;
+        let monthSales = 0, monthGrossProfit = 0, monthExp = 0;
 
         repairs.forEach(r => {
             const rDate = new Date(r.date);
             if (rDate.toDateString() === todayStr) {
                 todaySales += r.charged;
                 todayGrossProfit += r.profit;
-                todayCost += r.cost;
             }
             if (rDate >= startOfMonth) {
                 monthSales += r.charged;
                 monthGrossProfit += r.profit;
-                monthCost += r.cost;
             }
         });
 
@@ -690,48 +788,13 @@
             }
         });
 
-        const todayNet = todayGrossProfit - todayExp;
-        const monthNet = monthGrossProfit - monthExp;
-
         document.getElementById('todaySale').innerText = `Rs. ${todaySales.toLocaleString()}`;
         document.getElementById('todayExpense').innerText = `Rs. ${todayExp.toLocaleString()}`;
-        document.getElementById('todayNetProfit').innerText = `Rs. ${todayNet.toLocaleString()}`;
+        document.getElementById('todayNetProfit').innerText = `Rs. ${(todayGrossProfit - todayExp).toLocaleString()}`;
 
         document.getElementById('monthlySale').innerText = `Rs. ${monthSales.toLocaleString()}`;
         document.getElementById('monthlyExpense').innerText = `Rs. ${monthExp.toLocaleString()}`;
-        document.getElementById('monthlyNetProfit').innerText = `Rs. ${monthNet.toLocaleString()}`;
-
-        // ROI & Loss Logic for Today
-        const todayNetCard = document.getElementById('todayNetCard');
-        const todayRoiCard = document.getElementById('todayRoiCard');
-        const totalTodayInvestment = todayCost + todayExp;
-
-        if (todayNet < 0) {
-            todayNetCard.classList.add('is-loss');
-            todayRoiCard.classList.add('is-loss');
-            document.getElementById('todayRoi').innerText = "LOSS";
-        } else {
-            todayNetCard.classList.remove('is-loss');
-            todayRoiCard.classList.remove('is-loss');
-            let todayRoiVal = totalTodayInvestment > 0 ? ((todayNet / totalTodayInvestment) * 100).toFixed(1) : (todayNet > 0 ? 100 : 0);
-            document.getElementById('todayRoi').innerText = `${todayRoiVal}%`;
-        }
-
-        // ROI & Loss Logic for Monthly
-        const monthlyNetCard = document.getElementById('monthlyNetCard');
-        const monthlyRoiCard = document.getElementById('monthlyRoiCard');
-        const totalMonthInvestment = monthCost + monthExp;
-
-        if (monthNet < 0) {
-            monthlyNetCard.classList.add('is-loss');
-            monthlyRoiCard.classList.add('is-loss');
-            document.getElementById('monthlyRoi').innerText = "LOSS";
-        } else {
-            monthlyNetCard.classList.remove('is-loss');
-            monthlyRoiCard.classList.remove('is-loss');
-            let monthRoiVal = totalMonthInvestment > 0 ? ((monthNet / totalMonthInvestment) * 100).toFixed(1) : (monthNet > 0 ? 100 : 0);
-            document.getElementById('monthlyRoi').innerText = `${monthRoiVal}%`;
-        }
+        document.getElementById('monthlyNetProfit').innerText = `Rs. ${(monthGrossProfit - monthExp).toLocaleString()}`;
     }
 
     filterRepairs();
