@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baloch Mobile Shop - POS & Ledger System</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 1250px; margin: 0 auto; }
+        
+        /* Login Screen Overlay */
+        #loginScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0d233a 0%, #1a365d 100%);
+            display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 15px;
+        }
+        .login-card {
+            background: #ffffff; padding: 35px 25px; border-radius: 12px; width: 100%; max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border-top: 5px solid #f39c12;
+        }
+        .login-card h2 { margin: 0 0 5px 0; color: #1a365d; font-size: 24px; }
+        .login-card p { color: #718096; font-size: 13px; margin-bottom: 20px; }
+        .login-card input {
+            width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e0;
+            border-radius: 6px; font-size: 14px; outline: none;
+        }
+        .login-card button {
+            width: 100%; padding: 12px; background: #1a365d; color: white; border: none;
+            border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .login-card button:hover { background: #0d233a; }
+        #loginError { color: #e53e3e; font-size: 13px; display: none; margin-bottom: 10px; font-weight: bold; }
+
+        /* Header Card & Logos Styling */
+        .header-card { 
+            background: linear-gradient(135deg, #0d233a 0%, #1a365d 100%); 
+            color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 4px solid #f39c12; gap: 15px; flex-wrap: wrap;
+        }
+        .header-title-container { text-align: center; flex: 1; min-width: 200px; }
+        .header-card h1 { margin: 5px 0; font-size: 28px; font-weight: 800; color: #ffffff; text-transform: uppercase; }
+        .header-card p { margin: 3px 0; font-size: 16px; color: #f39c12; font-weight: 700; letter-spacing: 1px; }
+        .header-card .owner-tag { font-size: 14px; color: #e2e8f0; font-style: italic; margin-top: 5px; }
+
+        .logo-box { width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        
+        /* Dashboard Summary Cards */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #3182ce; }
+        .card h3 { margin: 0 0 6px 0; font-size: 12px; color: #718096; text-transform: uppercase; }
+        .card .amount { font-size: 20px; font-weight: bold; color: #2d3748; }
+        .card.profit { border-left-color: #38a169; }
+        .card.profit .amount { color: #38a169; }
+        .card.expense { border-left-color: #e53e3e; }
+        .card.expense .amount { color: #e53e3e; }
+
+        /* Action Bar (Logout & Print) */
+        .top-action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap; }
+        .btn-action { padding: 10px 18px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; }
+        .btn-print { background: #4a5568; color: white; }
+        .btn-print:hover { background: #2d3748; }
+        .btn-logout { background: #e53e3e; color: white; }
+        .btn-logout:hover { background: #c53030; }
+
+        /* Tabs Navigation */
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { background: #e2e8f0; border: none; padding: 12px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; color: #4a5568; flex: 1; text-align: center; }
+        .tab-btn.active { background: #1a365d; color: #fff; }
+
+        /* Section Layouts */
+        .section-block { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .section-title { margin-top: 0; margin-bottom: 15px; color: #1a365d; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; font-size: 17px; font-weight: 700; }
+        
+        /* Form Grids */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 5px; font-weight: 600; font-size: 12px; color: #4a5568; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; outline: none; }
+        .form-group input:focus, .form-group select:focus { border-color: #3182ce; }
+        
+        .btn-submit { grid-column: 1 / -1; background: #38a169; color: #fff; border: none; padding: 12px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; transition: 0.3s; }
+        .btn-submit:hover { background: #2f855a; }
+        .btn-submit.expense-btn { background: #e53e3e; }
+
+        /* Filter Controls Bar */
+        .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; align-items: flex-end; background: #edf2f7; padding: 12px; border-radius: 8px; }
+        .filter-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+        .filter-group label { font-size: 11px; font-weight: bold; color: #4a5568; margin-bottom: 3px; }
+        .filter-group input, .filter-group select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 13px; background: white; }
+        .btn-reset-filter { background: #718096; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; font-weight: bold; height: 35px; }
+
+        /* Responsive Tables & Search */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 700px; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #edf2f7; font-size: 13px; }
+        th { background-color: #1a365d; color: white; font-weight: 600; }
+        tr:hover { background-color: #f7fafc; }
+        .delete-btn { color: #e53e3e; cursor: pointer; border: none; background: none; font-weight: bold; font-size: 16px; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Print Specific Professional Styles */
+        .print-footer { display: none; margin-top: 40px; padding-top: 20px; border-top: 2px solid #cbd5e0; justify-content: space-between; }
+        .signature-box { text-align: center; border-top: 1px solid #333; width: 200px; padding-top: 5px; font-weight: bold; font-size: 12px; }
+
+        @media print {
+            body { background: white; padding: 0; color: black; }
+            .container { max-width: 100%; }
+            #loginScreen, .top-action-bar, .nav-tabs, .filter-controls, form, .delete-btn, th:last-child, td:last-child { display: none !important; }
+            .section-block { box-shadow: none; padding: 0; margin-bottom: 15px; }
+            .header-card { background: white !important; color: black !important; border-bottom: 2px solid #000; padding: 10px 0; }
+            .header-card h1 { color: black !important; font-size: 24px; }
+            .header-card p { color: #333 !important; }
+            .header-card .owner-tag { color: #555 !important; }
+            th { background-color: #eee !important; color: black !important; border: 1px solid #aaa; }
+            td { border: 1px solid #ddd; }
+            .print-footer { display: flex !important; }
+            .tab-content { display: block !important; }
+        }
+
+        /* Mobile Optimization Rules */
+        @media (max-width: 600px) {
+            .header-card { flex-direction: column; text-align: center; }
+            .logo-box { width: 80px; height: 80px; }
+            .header-card h1 { font-size: 22px; }
+            .header-card p { font-size: 14px; }
+            .card .amount { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Screen Overlay -->
+<div id="loginScreen">
+    <div class="login-card">
+        <h2>Baloch Mobile POS</h2>
+        <p>Restricted Access - Umar Baloch Only</p>
+        <div id="loginError">Incorrect Username or Password!</div>
+        <input type="text" id="username" placeholder="Username (e.g. umar)">
+        <input type="password" id="password" placeholder="Password (e.g. 1234)">
+        <button onclick="login()">Login to Dashboard</button>
+    </div>
+</div>
+
+<div class="container">
+    
+    <!-- Top Action Bar -->
+    <div class="top-action-bar">
+        <button class="btn-action btn-print" onclick="window.print()">🖨️ Print Professional Report / Save PDF</button>
+        <button class="btn-action btn-logout" onclick="logout()">🔒 Logout</button>
+    </div>
+
+    <!-- Header with Shop Details & Custom Logos -->
+    <div class="header-card">
+        <div class="logo-box">
+            <svg viewBox="0 0 200 120" width="100%" height="100%">
+                <ellipse cx="100" cy="60" rx="95" ry="55" fill="#111827" stroke="#4b5563" stroke-width="4"/>
+                <g transform="translate(25, 30)">
+                    <path d="M10 20 L25 10 L40 20 L40 40 L25 50 L10 40 Z" fill="none" stroke="#06b6d4" stroke-width="3"/>
+                    <circle cx="25" cy="10" r="4" fill="#f59e0b"/>
+                    <circle cx="40" cy="20" r="4" fill="#06b6d4"/>
+                    <circle cx="10" cy="40" r="4" fill="#3b82f6"/>
+                    <text x="50" y="28" font-family="Arial" font-weight="900" font-size="22" fill="#06b6d4">BALOCH</text>
+                    <text x="50" y="48" font-family="Arial" font-weight="900" font-size="20" fill="#f59e0b">TECH</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="header-title-container">
+            <h1>Baloch Mobile Shop</h1>
+            <p>D. I. KHAN</p>
+            <div class="owner-tag">Owner: Umar Baloch | Mobile Repairing & Expense System</div>
+        </div>
+
+        <div class="logo-box">
+            <svg viewBox="0 0 200 220" width="100%" height="100%">
+                <polygon points="100,5 185,45 185,160 100,205 15,160 15,45" fill="#0f172a" stroke="#2563eb" stroke-width="4"/>
+                <rect x="35" y="25" width="130" height="40" rx="4" fill="#d97706"/>
+                <text x="100" y="50" font-family="Arial" font-weight="bold" font-size="12" fill="#ffffff" text-anchor="middle">BALOCH MOBILE SHOP</text>
+                <path d="M20,120 L180,120 L160,165 L100,165 L40,165 Z" fill="#1e3a8a"/>
+                <text x="100" y="142" font-family="Arial" font-weight="900" font-size="19" fill="#ffffff" text-anchor="middle">BALOCH MOBILE</text>
+                <text x="100" y="160" font-family="Arial" font-weight="bold" font-size="15" fill="#f59e0b" text-anchor="middle">D. I. KHAN</text>
+                <text x="100" y="185" font-family="Arial" font-size="10" fill="#94a3b8" text-anchor="middle">MODERATE</text>
+                <polygon points="100,192 103,198 109,198 104,202 106,208 100,204 94,208 96,202 91,198 97,198" fill="#ffffff"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Financial Dashboard -->
+    <div class="dashboard">
+        <div class="card">
+            <h3>Today Total Sales</h3>
+            <div class="amount" id="todaySale">Rs. 0</div>
+        </div>
+        <div class="card expense">
+            <h3>Today Expenses</h3>
+            <div class="amount" id="todayExpense">Rs. 0</div>
+        </div>
+        <div class="card profit">
+            <h3>Today Net Profit</h3>
+            <div class="amount" id="todayNetProfit">Rs. 0</div>
+        </div>
+        <div class="card">
+            <h3>Monthly Sales</h3>
+            <div class="amount" id="monthlySale">Rs. 0</div>
+        </div>
+        <div class="card expense">
+            <h3>Monthly Expenses</h3>
+            <div class="amount" id="monthlyExpense">Rs. 0</div>
+        </div>
+        <div class="card profit">
+            <h3>Monthly Net Profit</h3>
+            <div class="amount" id="monthlyNetProfit">Rs. 0</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('repairs')">Mobile Repairs & Sales</button>
+        <button class="tab-btn" onclick="switchTab('expenses')">Shop Expenses</button>
+    </div>
+
+    <!-- Tab 1: Mobile Repair Management -->
+    <div id="repairsTab" class="tab-content active">
+        <div class="section-block">
+            <h2 class="section-title">Add New Mobile Repair Job</h2>
+            <form id="repairForm" class="form-grid">
+                <div class="form-group">
+                    <label>Entry Date (Optional)</label>
+                    <input type="date" id="repairCustomDate">
+                </div>
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="custName" required placeholder="Enter customer name">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="custPhone" placeholder="0300-1234567">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Model</label>
+                    <input type="text" id="phoneModel" required placeholder="e.g. Vivo Y20 / iPhone 11">
+                </div>
+                <div class="form-group">
+                    <label>Fault / Repair Work</label>
+                    <input type="text" id="repairIssue" required placeholder="e.g. Panel Replacement, Charging Jack">
+                </div>
+                <div class="form-group">
+                    <label>Part Cost (Rs.)</label>
+                    <input type="number" id="costPrice" value="0" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Customer Charges / Bill (Rs.)</label>
+                    <input type="number" id="chargedPrice" value="0" min="0" required>
+                </div>
+                <button type="submit" class="btn-submit">Save Repair Record</button>
+            </form>
+        </div>
+
+        <div class="section-block">
+            <h2 class="section-title">Repair History Ledger & Reports</h2>
+            
+            <!-- Filters Control Bar -->
+            <div class="filter-controls">
+                <div class="filter-group" style="flex:2;">
+                    <label>Search Keyword</label>
+                    <input type="text" id="searchRepairInput" onkeyup="filterRepairs()" placeholder="Customer name, phone, or model...">
+                </div>
+                <div class="filter-group">
+                    <label>From Date</label>
+                    <input type="date" id="repairFromDate" onchange="filterRepairs()">
+                </div>
+                <div class="filter-group">
+                    <label>To Date</label>
+                    <input type="date" id="repairToDate" onchange="filterRepairs()">
+                </div>
+                <div class="filter-group">
+                    <label>Show Entries</label>
+                    <select id="repairRowsPerPage" onchange="filterRepairs()">
+                        <option value="10">10 Rows</option>
+                        <option value="25">25 Rows</option>
+                        <option value="50">50 Rows</option>
+                        <option value="all" selected>Show All</option>
+                    </select>
+                </div>
+                <button class="btn-reset-filter" onclick="resetRepairFilters()">Reset Filters</button>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"><input type="checkbox" id="selectAllRepairs" onclick="toggleSelectAllRepairs(this)"></th>
+                            <th>Sr #</th>
+                            <th>Date & Time</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Model</th>
+                            <th>Fault Details</th>
+                            <th>Part Cost</th>
+                            <th>Bill</th>
+                            <th>Profit</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="repairTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Shop Expense Management -->
+    <div id="expensesTab" class="tab-content">
+        <div class="section-block">
+            <h2 class="section-title">Add Shop Expense</h2>
+            <form id="expenseForm" class="form-grid">
+                <div class="form-group">
+                    <label>Entry Date (Optional)</label>
+                    <input type="date" id="expCustomDate">
+                </div>
+                <div class="form-group">
+                    <label>Expense Title</label>
+                    <input type="text" id="expTitle" required placeholder="e.g. Tea, Rent, Electric Bill">
+                </div>
+                <div class="form-group">
+                    <label>Amount Spent (Rs.)</label>
+                    <input type="number" id="expAmount" min="1" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Notes / Details (Optional)</label>
+                    <input type="text" id="expDetails" placeholder="Add extra detail...">
+                </div>
+                <button type="submit" class="btn-submit expense-btn">Save Expense Record</button>
+            </form>
+        </div>
+
+        <div class="section-block">
+            <h2 class="section-title">Expense History Ledger & Reports</h2>
+            
+            <!-- Filters Control Bar -->
+            <div class="filter-controls">
+                <div class="filter-group" style="flex:2;">
+                    <label>Search Expense</label>
+                    <input type="text" id="searchExpenseInput" onkeyup="filterExpenses()" placeholder="Expense title or notes...">
+                </div>
+                <div class="filter-group">
+                    <label>From Date</label>
+                    <input type="date" id="expFromDate" onchange="filterExpenses()">
+                </div>
+                <div class="filter-group">
+                    <label>To Date</label>
+                    <input type="date" id="expToDate" onchange="filterExpenses()">
+                </div>
+                <div class="filter-group">
+                    <label>Show Entries</label>
+                    <select id="expRowsPerPage" onchange="filterExpenses()">
+                        <option value="10">10 Rows</option>
+                        <option value="25">25 Rows</option>
+                        <option value="50">50 Rows</option>
+                        <option value="all" selected>Show All</option>
+                    </select>
+                </div>
+                <button class="btn-reset-filter" onclick="resetExpenseFilters()">Reset Filters</button>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"><input type="checkbox" id="selectAllExpenses" onclick="toggleSelectAllExpenses(this)"></th>
+                            <th>Sr #</th>
+                            <th>Date & Time</th>
+                            <th>Expense Title</th>
+                            <th>Details</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Print Footer Signature -->
+    <div class="print-footer">
+        <div class="signature-box">System Generated Audit</div>
+        <div class="signature-box">Owner Signature (Umar Baloch)</div>
+    </div>
+
+</div>
+
+<script>
+    // Audio Context Setup for Entry Beep Sound
+    function playEntrySound() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.12); // A5
+
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+        } catch(e) {
+            console.log('Audio error:', e);
+        }
+    }
+
+    // Check Authentication on Page Load
+    if (localStorage.getItem('baloch_logged_in') === 'true') {
+        document.getElementById('loginScreen').style.display = 'none';
+    }
+
+    function login() {
+        const u = document.getElementById('username').value.trim().toLowerCase();
+        const p = document.getElementById('password').value.trim();
+
+        if (u === 'umar' && p === '1234') {
+            localStorage.setItem('baloch_logged_in', 'true');
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('loginError').style.display = 'none';
+            playEntrySound();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('baloch_logged_in');
+        document.getElementById('loginScreen').style.display = 'flex';
+    }
+
+    let repairs = JSON.parse(localStorage.getItem('baloch_repairs')) || [];
+    let expenses = JSON.parse(localStorage.getItem('baloch_expenses')) || [];
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        if (tabName === 'repairs') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.getElementById('repairsTab').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('expensesTab').classList.add('active');
+        }
+    }
+
+    document.getElementById('repairForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cost = parseFloat(document.getElementById('costPrice').value) || 0;
+        const charged = parseFloat(document.getElementById('chargedPrice').value) || 0;
+        const customDateVal = document.getElementById('repairCustomDate').value;
+
+        let recordDate = customDateVal ? new Date(customDateVal) : new Date();
+        
+        const newRecord = {
+            id: Date.now(),
+            dateStr: recordDate.toLocaleDateString('en-US') + ' ' + new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'}),
+            dateISO: recordDate.toISOString().split('T')[0],
+            date: recordDate.toISOString(),
+            name: document.getElementById('custName').value,
+            phone: document.getElementById('custPhone').value || 'N/A',
+            model: document.getElementById('phoneModel').value,
+            issue: document.getElementById('repairIssue').value,
+            cost: cost,
+            charged: charged,
+            profit: charged - cost
+        };
+
+        repairs.unshift(newRecord);
+        localStorage.setItem('baloch_repairs', JSON.stringify(repairs));
+        playEntrySound(); // Play sound effect on saving entry
+        this.reset();
+        filterRepairs();
+        calculateDashboard();
+    });
+
+    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const customDateVal = document.getElementById('expCustomDate').value;
+        let recordDate = customDateVal ? new Date(customDateVal) : new Date();
+
+        const newExpense = {
+            id: Date.now(),
+            dateStr: recordDate.toLocaleDateString('en-US') + ' ' + new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'}),
+            dateISO: recordDate.toISOString().split('T')[0],
+            date: recordDate.toISOString(),
+            title: document.getElementById('expTitle').value,
+            amount: parseFloat(document.getElementById('expAmount').value) || 0,
+            details: document.getElementById('expDetails').value || '-'
+        };
+
+        expenses.unshift(newExpense);
+        localStorage.setItem('baloch_expenses', JSON.stringify(expenses));
+        playEntrySound(); // Play sound effect on saving entry
+        this.reset();
+        filterExpenses();
+        calculateDashboard();
+    });
+
+    function filterRepairs() {
+        const query = document.getElementById('searchRepairInput').value.toLowerCase();
+        const fromDate = document.getElementById('repairFromDate').value;
+        const toDate = document.getElementById('repairToDate').value;
+        const rowLimit = document.getElementById('repairRowsPerPage').value;
+
+        let filtered = repairs.filter(r => {
+            const matchesSearch = r.name.toLowerCase().includes(query) || 
+                                  r.phone.toLowerCase().includes(query) || 
+                                  r.model.toLowerCase().includes(query);
+            
+            const itemDate = r.dateISO || r.date.split('T')[0];
+            let matchesFrom = true, matchesTo = true;
+            if (fromDate) matchesFrom = itemDate >= fromDate;
+            if (toDate) matchesTo = itemDate <= toDate;
+
+            return matchesSearch && matchesFrom && matchesTo;
+        });
+
+        if (rowLimit !== 'all') {
+            filtered = filtered.slice(0, parseInt(rowLimit));
+        }
+
+        renderRepairs(filtered);
+    }
+
+    function renderRepairs(data) {
+        const tbody = document.getElementById('repairTableBody');
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#a0aec0;">No repair records found.</td></tr>`;
+            return;
+        }
+        data.forEach((item, index) => {
+            tbody.innerHTML += `<tr>
+                <td><input type="checkbox" class="repair-chk"></td>
+                <td><strong>${index + 1}</strong></td>
+                <td>${item.dateStr}</td>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.phone}</td>
+                <td>${item.model}</td>
+                <td>${item.issue}</td>
+                <td>Rs. ${item.cost.toLocaleString()}</td>
+                <td>Rs. ${item.charged.toLocaleString()}</td>
+                <td style="color: #38a169; font-weight: bold;">Rs. ${item.profit.toLocaleString()}</td>
+                <td><button class="delete-btn" onclick="deleteRepair(${item.id})">&times;</button></td>
+            </tr>`;
+        });
+    }
+
+    function filterExpenses() {
+        const query = document.getElementById('searchExpenseInput').value.toLowerCase();
+        const fromDate = document.getElementById('expFromDate').value;
+        const toDate = document.getElementById('expToDate').value;
+        const rowLimit = document.getElementById('expRowsPerPage').value;
+
+        let filtered = expenses.filter(e => {
+            const matchesSearch = e.title.toLowerCase().includes(query) || 
+                                  e.details.toLowerCase().includes(query);
+            
+            const itemDate = e.dateISO || e.date.split('T')[0];
+            let matchesFrom = true, matchesTo = true;
+            if (fromDate) matchesFrom = itemDate >= fromDate;
+            if (toDate) matchesTo = itemDate <= toDate;
+
+            return matchesSearch && matchesFrom && matchesTo;
+        });
+
+        if (rowLimit !== 'all') {
+            filtered = filtered.slice(0, parseInt(rowLimit));
+        }
+
+        renderExpenses(filtered);
+    }
+
+    function renderExpenses(data) {
+        const tbody = document.getElementById('expenseTableBody');
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#a0aec0;">No expense records found.</td></tr>`;
+            return;
+        }
+        data.forEach((item, index) => {
+            tbody.innerHTML += `<tr>
+                <td><input type="checkbox" class="exp-chk"></td>
+                <td><strong>${index + 1}</strong></td>
+                <td>${item.dateStr}</td>
+                <td><strong>${item.title}</strong></td>
+                <td>${item.details}</td>
+                <td style="color: #e53e3e; font-weight: bold;">Rs. ${item.amount.toLocaleString()}</td>
+                <td><button class="delete-btn" onclick="deleteExpense(${item.id})">&times;</button></td>
+            </tr>`;
+        });
+    }
+
+    function resetRepairFilters() {
+        document.getElementById('searchRepairInput').value = '';
+        document.getElementById('repairFromDate').value = '';
+        document.getElementById('repairToDate').value = '';
+        document.getElementById('repairRowsPerPage').value = 'all';
+        filterRepairs();
+    }
+
+    function resetExpenseFilters() {
+        document.getElementById('searchExpenseInput').value = '';
+        document.getElementById('expFromDate').value = '';
+        document.getElementById('expToDate').value = '';
+        document.getElementById('expRowsPerPage').value = 'all';
+        filterExpenses();
+    }
+
+    function toggleSelectAllRepairs(master) {
+        document.querySelectorAll('.repair-chk').forEach(chk => chk.checked = master.checked);
+    }
+
+    function toggleSelectAllExpenses(master) {
+        document.querySelectorAll('.exp-chk').forEach(chk => chk.checked = master.checked);
+    }
+
+    function deleteRepair(id) {
+        if (confirm('Delete this repair record?')) {
+            repairs = repairs.filter(r => r.id !== id);
+            localStorage.setItem('baloch_repairs', JSON.stringify(repairs));
+            filterRepairs();
+            calculateDashboard();
+        }
+    }
+
+    function deleteExpense(id) {
+        if (confirm('Delete this expense record?')) {
+            expenses = expenses.filter(e => e.id !== id);
+            localStorage.setItem('baloch_expenses', JSON.stringify(expenses));
+            filterExpenses();
+            calculateDashboard();
+        }
+    }
+
+    function calculateDashboard() {
+        const now = new Date();
+        const todayStr = now.toDateString();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        let todaySales = 0, todayGrossProfit = 0, todayExp = 0;
+        let monthSales = 0, monthGrossProfit = 0, monthExp = 0;
+
+        repairs.forEach(r => {
+            const rDate = new Date(r.date);
+            if (rDate.toDateString() === todayStr) {
+                todaySales += r.charged;
+                todayGrossProfit += r.profit;
+            }
+            if (rDate >= startOfMonth) {
+                monthSales += r.charged;
+                monthGrossProfit += r.profit;
+            }
+        });
+
+        expenses.forEach(e => {
+            const eDate = new Date(e.date);
+            if (eDate.toDateString() === todayStr) {
+                todayExp += e.amount;
+            }
+            if (eDate >= startOfMonth) {
+                monthExp += e.amount;
+            }
+        });
+
+        document.getElementById('todaySale').innerText = `Rs. ${todaySales.toLocaleString()}`;
+        document.getElementById('todayExpense').innerText = `Rs. ${todayExp.toLocaleString()}`;
+        document.getElementById('todayNetProfit').innerText = `Rs. ${(todayGrossProfit - todayExp).toLocaleString()}`;
+
+        document.getElementById('monthlySale').innerText = `Rs. ${monthSales.toLocaleString()}`;
+        document.getElementById('monthlyExpense').innerText = `Rs. ${monthExp.toLocaleString()}`;
+        document.getElementById('monthlyNetProfit').innerText = `Rs. ${(monthGrossProfit - monthExp).toLocaleString()}`;
+    }
+
+    filterRepairs();
+    filterExpenses();
+    calculateDashboard();
+</script>
+
+</body>
+</html>
