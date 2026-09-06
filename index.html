@@ -9,28 +9,80 @@
         body { background-color: #f4f6f9; margin: 0; padding: 15px; color: #333; }
         .container { max-width: 1250px; margin: 0 auto; }
         
-        /* Login Screen Overlay */
+        /* High-Tech Animated Login Screen Overlay */
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0d233a 0%, #1a365d 100%);
+            background: #090d16;
             display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 15px;
+            overflow: hidden;
         }
+
+        /* Animated Background Canvas */
+        #bgCanvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+        }
+
+        /* Glassmorphism Login Card */
         .login-card {
-            background: #ffffff; padding: 35px 25px; border-radius: 12px; width: 100%; max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border-top: 5px solid #f39c12;
+            position: relative; z-index: 2;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 20px rgba(14, 165, 233, 0.2);
+            text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: floatCard 4s ease-in-out infinite;
         }
-        .login-card h2 { margin: 0 0 5px 0; color: #1a365d; font-size: 24px; }
-        .login-card p { color: #718096; font-size: 13px; margin-bottom: 20px; }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Adnan Signature Brand Badge */
+        .dev-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.4);
+            padding: 6px 14px; border-radius: 20px; color: #38bdf8; font-size: 12px;
+            font-weight: 700; letter-spacing: 0.5px; margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Custom Adnan Developer Logo */
+        .adnan-logo {
+            width: 70px; height: 70px; margin: 0 auto 15px auto;
+            background: linear-gradient(135deg, #0284c7, #06b6d4);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .login-card h2 { margin: 0 0 5px 0; color: #ffffff; font-size: 24px; font-weight: 800; }
+        .login-card p { color: #94a3b8; font-size: 13px; margin-bottom: 22px; }
+        
+        .input-box { position: relative; margin-bottom: 16px; }
         .login-card input {
-            width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e0;
-            border-radius: 6px; font-size: 14px; outline: none;
+            width: 100%; padding: 13px 15px; background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px;
+            font-size: 14px; color: #fff; outline: none; transition: 0.3s;
         }
+        .login-card input:focus {
+            border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+            background: rgba(30, 41, 59, 0.9);
+        }
+        .login-card input::placeholder { color: #64748b; }
+
         .login-card button {
-            width: 100%; padding: 12px; background: #1a365d; color: white; border: none;
-            border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.3s;
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: white; border: none; border-radius: 8px; font-weight: bold;
+            font-size: 15px; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
         }
-        .login-card button:hover { background: #0d233a; }
-        #loginError { color: #e53e3e; font-size: 13px; display: none; margin-bottom: 10px; font-weight: bold; }
+        .login-card button:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); transform: translateY(-1px);
+        }
+        #loginError { color: #f87171; font-size: 13px; display: none; margin-bottom: 12px; font-weight: bold; }
 
         /* Header Card & Logos Styling */
         .header-card { 
@@ -139,27 +191,48 @@
 </head>
 <body>
 
-<!-- Login Screen Overlay -->
 <div id="loginScreen">
+    <canvas id="bgCanvas"></canvas>
+    
     <div class="login-card">
+        <div class="dev-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            DEVELOPED BY ADNAN
+        </div>
+
+        <div class="adnan-logo">
+            <svg width="45" height="45" viewBox="0 0 100 100">
+                <path d="M 20,80 L 50,15 L 80,80 M 32,55 L 68,55" stroke="#ffffff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="50" cy="15" r="5" fill="#38bdf8"/>
+                <path d="M 15,85 C 35,95 65,95 85,85" stroke="#38bdf8" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+
         <h2>Baloch Mobile POS</h2>
         <p>Restricted Access - Umar Baloch Only</p>
+        
         <div id="loginError">Incorrect Username or Password!</div>
-        <input type="text" id="username" placeholder="Username (e.g. umar)">
-        <input type="password" id="password" placeholder="Password (e.g. 1234)">
+        
+        <div class="input-box">
+            <input type="text" id="username" placeholder="Username (e.g. umar)">
+        </div>
+        <div class="input-box">
+            <input type="password" id="password" placeholder="Password (e.g. 1234)">
+        </div>
         <button onclick="login()">Login to Dashboard</button>
     </div>
 </div>
 
 <div class="container">
     
-    <!-- Top Action Bar -->
     <div class="top-action-bar">
         <button class="btn-action btn-print" onclick="window.print()">🖨️ Print Professional Report / Save PDF</button>
         <button class="btn-action btn-logout" onclick="logout()">🔒 Logout</button>
     </div>
 
-    <!-- Header Card -->
     <div class="header-card">
         <div class="logo-box">
             <svg viewBox="0 0 200 120" width="100%" height="100%">
@@ -195,7 +268,6 @@
         </div>
     </div>
 
-    <!-- Financial Dashboard -->
     <div class="dashboard">
         <div class="card">
             <h3>Today Total Sales</h3>
@@ -223,13 +295,11 @@
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('repairs')">Mobile Repairs & Sales</button>
         <button class="tab-btn" onclick="switchTab('expenses')">Shop Expenses</button>
     </div>
 
-    <!-- Tab 1: Mobile Repair Management -->
     <div id="repairsTab" class="tab-content active">
         <div class="section-block">
             <h2 class="section-title">Add New Mobile Repair Job</h2>
@@ -247,7 +317,6 @@
                     <input type="text" id="custPhone" placeholder="0300-1234567">
                 </div>
                 
-                <!-- Company Select with Auto Suggestions & Logo -->
                 <div class="form-group">
                     <label>Company Brand</label>
                     <input type="text" id="phoneCompany" list="companyList" placeholder="e.g. Samsung, Vivo, iPhone" oninput="updateCompanyPreview(this.value)">
@@ -266,7 +335,6 @@
                     <div id="companyPreview" class="preview-badge"></div>
                 </div>
 
-                <!-- Model Select with Auto Suggestions & Image -->
                 <div class="form-group">
                     <label>Mobile Model</label>
                     <input type="text" id="phoneModel" list="modelList" required placeholder="e.g. Galaxy S21 / iPhone 11" oninput="updateModelPreview(this.value)">
@@ -352,7 +420,6 @@
         </div>
     </div>
 
-    <!-- Tab 2: Shop Expense Management -->
     <div id="expensesTab" class="tab-content">
         <div class="section-block">
             <h2 class="section-title">Add Shop Expense</h2>
@@ -441,6 +508,71 @@
 </div>
 
 <script>
+    // Background Particle Animation (Video Effect)
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const particles = [];
+    const particleCount = 65;
+
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 1.2,
+            vy: (Math.random() - 0.5) * 1.2,
+            radius: Math.random() * 2 + 1
+        });
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Dark animated gradient background
+        let grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        grad.addColorStop(0, '#090d16');
+        grad.addColorStop(0.5, '#0f172a');
+        grad.addColorStop(1, '#0284c7');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+
+        for (let i = 0; i < particleCount; i++) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            for (let j = i + 1; j < particleCount; j++) {
+                let p2 = particles[j];
+                let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
     // Asset Mapping Helper Functions
     function getCompanyLogoUrl(companyName) {
         if (!companyName) return '';
